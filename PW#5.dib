@@ -1,0 +1,69 @@
+#!meta
+
+{"kernelInfo":{"defaultKernelName":"csharp","items":[{"aliases":[],"languageName":"csharp","name":"csharp"}]}}
+
+#!markdown
+
+# Практическая работа №5. Идиома производитель-потребитель.
+
+**Цель:** Изучить примитив синхронизации Очередь сообщений.
+
+**Результаты:** После выполнения работы Вы сможете:
+1. Передавать данные между потоками.
+2. Изучите примтив синхронизации, который используется в современных архитектурах высоко-нагруженных приложений Event Loop
+
+
+**Материалы для самостоятельного изучения**.
+1. [Потоко-безопасные коллекции](https://learn.microsoft.com/en-us/dotnet/standard/collections/thread-safe/)
+2. Идиома производитель-потребитель Глава 4 книги Г. Эндрюс Основы многопоточного, параллельного и распределенного программирования
+
+## Задание.
+Реализовать приложение Ping-Pong.
+
+Создать дав потока, каждый из которых в цикле читает данные из BlockingCollection<Message>. После того, как поток прочитал объект из очереди, вызвал его метод Handle(), он создает новый объект класса Message и записывает его в очередь другого потока. Каждый поток всего должен обработать 100 сообщений.
+
+**Указание**.
+1. Как запустить процесс обмена объектами Message между потоками? Первый объект Message пишем в очередь одного из потоков прямо из кода, коорый жти потоки стартовал.
+2. Не забываем дождаться завершения работы потоков.
+
+#!csharp
+
+#r "nuget: xunit, 2.8.1"
+using System.Threading;
+using Xunit;
+
+class Message
+{
+    static int messageHandled = 0;
+    int id;
+    public Message()
+    {
+        id = Thread.CurrentThread.ManagedThreadId;
+    }
+
+    public void Handle()
+    {
+        Interlocked.Increment(ref messageHandled);
+        Assert.NotEqual(id, Thread.CurrentThread.ManagedThreadId);
+    }
+
+    public static void Check()
+    {
+        Assert.Equal(200, messageHandled);
+    }
+}
+
+#!csharp
+
+using System.Collections.Concurrent;
+
+var queue1 = new BlockingCollection<Message>(2); //очередь первого потока
+var queue2 = new BlockingCollection<Message>(2); //очередь второго потока
+
+// Здесь писать решение
+
+#!csharp
+
+Assert.Equal(0, queue1.Count);
+Assert.Equal(0, queue2.Count);
+Message.Check();
